@@ -60,7 +60,7 @@ namespace UnitTests.Customers.Application.Workers
 
             //assert
             receivedValue.Should().BeNull();
-            receivedMessage.Should().BeNullOrEmpty().And.Be(expectedMessage);
+            receivedMessage.Should().Be(ScheduledCustomerAcceptProcessWorker.MessageReceived);
         }
 
 
