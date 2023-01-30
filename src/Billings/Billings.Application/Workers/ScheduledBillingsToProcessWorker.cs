@@ -2,11 +2,12 @@
 using Billings.Domain.Models;
 using Library.Messaging;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Billings.Application.Workers
@@ -22,17 +23,31 @@ namespace Billings.Application.Workers
 
         public override async Task<(List<Billing> receivedValue, string receivedMessage)> HandleReceivedMessage(BasicDeliverEventArgs ea)
         {
-            var body = ea.Body.ToArray();
-            var receivedMessage = Encoding.UTF8.GetString(body);
-            var processedBatch = JsonConvert.DeserializeObject<List<Billing>>(receivedMessage);
+            var processedBatch = JsonSerializer.Deserialize<List<Billing>>(ea.Body.ToArray());
             await _repository.UpdateProcessedBatchAsync(processedBatch);
-            return (processedBatch, receivedMessage);
+            return (processedBatch, BuildReceivedMessage(processedBatch).ToString());
         }
 
         public override async Task<string> WriteResponseMessage(List<Billing> receivedValue)
         {
             var pendingProcessing = await _repository.GetPendingAsync(default);
-            return JsonConvert.SerializeObject(pendingProcessing);
+            return JsonSerializer.Serialize(pendingProcessing);
+        }
+
+        private StringBuilder BuildReceivedMessage(List<Billing> processedBatch)
+        {
+            var builderLength = Math.Max((processedBatch.Count * 2) + 1, 2);
+            var idsMessageBuilder = new StringBuilder("billing ids received to process: [", builderLength);
+            var enumerator = processedBatch.GetEnumerator();
+            while (enumerator.Current is Billing billing)
+            {
+                if (billing != processedBatch[0]) idsMessageBuilder.Append(",");
+                idsMessageBuilder.Append(enumerator.Current.Id);
+                enumerator.MoveNext();
+            }
+
+            idsMessageBuilder.Append("]");
+            return idsMessageBuilder;
         }
     }
 }
