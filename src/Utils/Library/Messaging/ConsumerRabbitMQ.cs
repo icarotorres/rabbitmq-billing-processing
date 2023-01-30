@@ -63,15 +63,15 @@ namespace Library.Messaging
             var usecaseResult = await SendMessageToUsecase(body);
             if (usecaseResult.IsSuccess())
             {
-                _logger.LogInformation($"Message consumed. RoutingKey: {ea.RoutingKey}, Consumer: {consumerName}, " +
-                    $"Queue: {queueName}, DeliveryTag: {ea.DeliveryTag}, Body: {body}.");
+                _logger.LogInformation("Message consumed. RoutingKey: {RoutingKey}, Consumer: {consumerName}, Queue: {Queue}, DeliveryTag: {DeliveryTag}, Body: {Body}.",
+                    ea.RoutingKey, consumerName, queueName, ea.DeliveryTag, body);
                 channel.BasicAck(ea.DeliveryTag, false);
             }
             else
             {
                 var errorLines = string.Join(Environment.NewLine, usecaseResult.Errors);
-                _logger.LogError($"Message consumption failed. RoutingKey: {ea.RoutingKey}, Consumer: {consumerName}, " +
-                    $"Queue: {queueName}, DeliveryTag: {ea.DeliveryTag}, Body: {body}. Errors: {errorLines}");
+                _logger.LogError("Message consumption failed. RoutingKey: {RoutingKey}, Consumer: {consumerName}, Queue: {Queue}, DeliveryTag: {DeliveryTag}, Body: {Body}, Errors: {Errors}.",
+                    ea.RoutingKey, consumerName, queueName, ea.DeliveryTag, body, errorLines);
                 channel.BasicNack(ea.DeliveryTag, false, true);
             }
         }

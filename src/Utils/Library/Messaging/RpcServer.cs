@@ -36,7 +36,7 @@ namespace Library.Messaging
 
             var consumer = new EventingBasicConsumer(channel);
             channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
-            _logger.LogInformation($"Awaiting RPC requests for queue {queueName}");
+            _logger.LogInformation("Awaiting RPC requests for queue {Queue}", queueName);
             return consumer;
         }
 
@@ -75,23 +75,27 @@ namespace Library.Messaging
 
         protected virtual void OnMessageReceivedStarts(BasicDeliverEventArgs ea)
         {
-            _logger.LogInformation($"Received on CorrelationId: {ea.BasicProperties.CorrelationId}, RoutingKey: {ea.RoutingKey}, DeliveryTag: {ea.DeliveryTag}.");
+            _logger.LogInformation("Received on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}.",
+                ea.BasicProperties.CorrelationId, ea.RoutingKey, ea.DeliveryTag);
         }
 
-        protected virtual void OnMessageReaded(BasicDeliverEventArgs ea, string receivedMessage)
+        protected virtual void OnMessageReaded(BasicDeliverEventArgs ea, string readMessage)
         {
-            _logger.LogInformation($"Readed on CorrelationId: {ea.BasicProperties.CorrelationId}, RoutingKey: {ea.RoutingKey}, DeliveryTag: {ea.DeliveryTag}, Body: {receivedMessage}.");
+            _logger.LogInformation("Readed on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}, Message: {Message}.",
+                ea.BasicProperties.CorrelationId, ea.RoutingKey, ea.DeliveryTag, readMessage);
         }
 
         protected virtual void OnResponseWritten(BasicDeliverEventArgs ea, string responseMessage)
         {
-            _logger.LogInformation($"Responded on CorrelationId: {ea.BasicProperties.CorrelationId}, RoutingKey: {ea.RoutingKey}, DeliveryTag: {ea.DeliveryTag}, ReplyMessage: {responseMessage}");
+            _logger.LogInformation("Readed on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}, ReplyMessage: {ReplyMessage}.",
+                ea.BasicProperties.CorrelationId, ea.RoutingKey, ea.DeliveryTag, responseMessage);
         }
 
         protected virtual void OnMessageReceivedException(BasicDeliverEventArgs ea, Exception ex)
         {
             var errors = string.Join(Environment.NewLine, ex.ExtractMessages());
-            _logger.LogError($"Failed on CorrelationId: {ea.BasicProperties.CorrelationId}, RoutingKey: {ea.RoutingKey}, DeliveryTag: {ea.DeliveryTag}. Errors: {errors}");
+            _logger.LogInformation("Readed on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}, Errors: {Errors}.",
+                ea.BasicProperties.CorrelationId, ea.RoutingKey, ea.DeliveryTag, errors);
         }
 
         protected virtual void OnMessageReceivedEnds(BasicDeliverEventArgs ea, IModel channel, string response, IBasicProperties receivedProperties, IBasicProperties replyProperties)

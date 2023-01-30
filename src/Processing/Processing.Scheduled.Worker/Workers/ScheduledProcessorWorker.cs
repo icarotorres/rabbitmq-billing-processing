@@ -40,17 +40,25 @@ namespace Processing.Scheduled.Worker.Workers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation($"{DateTime.UtcNow:G} Starting scheduled batch processing ...");
+            _logger.LogInformation($"Starting scheduled batch processing...");
+
             var batch = new ProcessBatch();
-            while (true)
+            var errorCount = 0;
+            using var semaphore = new SemaphoreSlim(0, 1);
+            while (_config.MaxErrorCount > errorCount)
             {
-                try
+                if (await semaphore.WaitAsync(_config.MillisecondsScheduledTime))
                 {
-                    batch = await DoExecute(batch);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"{DateTime.UtcNow:G} BatchId: {batch.Id}, Exceptions: {string.Join(Environment.NewLine, ex.ExtractMessages())}");
+                    try
+                    {
+                        batch = await DoExecute(batch);
+                    }
+                    catch (Exception ex)
+                    {
+                        errorCount++;
+                        _logger.LogError("BatchId: {BatchId}, ErrorCount: {ErrorCount}, Exceptions: {ExceptionMessages}",
+                            batch.Id, errorCount, string.Join(Environment.NewLine, ex.ExtractMessages()));
+                    }
                 }
             }
         }
@@ -59,8 +67,9 @@ namespace Processing.Scheduled.Worker.Workers
         {
             batch = await FetchBatchAsync(batch);
             batch = ProcessBatch(batch);
-            _logger.LogInformation($"{DateTime.UtcNow:G} BatchId: {batch.Id}. Waiting {_config.MillisecondsScheduledTime} milliseconds to process next batch...");
-            return await batch.ResetIdAfter(_config.MillisecondsScheduledTime);
+            _logger.LogInformation("BatchId: {BatchId}. Waiting {MillisecondsScheduledTime} milliseconds to process next batch...", batch.Id, _config.MillisecondsScheduledTime);
+            batch.Id = Guid.NewGuid().ToString();
+            return batch;
         }
 
         internal async Task<ProcessBatch> FetchBatchAsync(ProcessBatch batch)
@@ -68,13 +77,13 @@ namespace Processing.Scheduled.Worker.Workers
             var billingTask = Task.Run(() =>
             {
                 batch.Billings = _billingClient.CallProcedure(batch.Billings);
-                _logger.LogInformation($"{DateTime.UtcNow:G}  BatchId: {batch.Id}. Billings ready to process...");
+                _logger.LogInformation("BatchId: {batchId}. Billings ready to process...", batch.Id);
             });
             var customerTask = Task.Run(() =>
             {
                 batch.Customers = new List<ICpfCarrier>(_customerClient.CallProcedure(""));
                 batch.Customers.Sort(_comparer);
-                _logger.LogInformation($"{DateTime.UtcNow:G}  BatchId: {batch.Id}. Customers ready to process...");
+                _logger.LogInformation("BatchId: {batchId}. Customers ready to process...", batch.Id);
             });
 
             await Task.WhenAll(billingTask, customerTask);
@@ -85,11 +94,11 @@ namespace Processing.Scheduled.Worker.Workers
         {
             if (batch.Customers.Count == 0 || batch.Billings.Count == 0)
             {
-                // _logger.LogInformation($"{DateTime.UtcNow:G}  BatchId: {batch.Id}. Skiping batch. Nothing to process now...");
+                _logger.LogInformation("BatchId: {BatchId}. Skiping batch. Nothing to process now...", batch.Id);
                 return batch;
             }
 
-            // _logger.LogInformation($"{DateTime.UtcNow:G}  BatchId: {batch.Id}. Process started...");
+            _logger.LogInformation("BatchId: {BatchId}. Process started...", batch.Id);
             Parallel.For(0, batch.Billings.Count, billindIndex =>
             {
                 var billing = batch.Billings[billindIndex];
@@ -100,7 +109,7 @@ namespace Processing.Scheduled.Worker.Workers
                     batch.Billings[billindIndex] = _processor.Process(customer, billing);
                 }
             });
-            // _logger.LogInformation($"{DateTime.UtcNow:G}  BatchId: {batch.Id}. Process finished...");
+            _logger.LogInformation("BatchId: {BatchId}. Process finished...", batch.Id);
 
             return batch;
         }
