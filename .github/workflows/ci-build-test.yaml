@@ -43,15 +43,13 @@ jobs:
         with:
           # Optional SDK version(s) to use. If not provided, will install global.json version when available. Examples: 2.2.104, 3.1, 3.1.x, 3.x
           dotnet-version: 3.1.x
-          # Optional quality of the build. The possible values are: daily, signed, validated, preview, ga.
-          dotnet-quality: validated
       
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          sonar/scanner/dotnet-sonarscanner begin /k:"IcaroTorres_rabbitmq-billing-processing" /o:"icarotorres" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/UnitTests/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="**/UnitTests/TestResults/*.trx"
+          sonar/scanner/dotnet-sonarscanner begin /k:"${{ secrets.SONAR_PROJECT }}" /o:"${{ secrets.SONAR_ORGANIZATION }}" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/UnitTests/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="**/UnitTests/TestResults/*.trx"
           dotnet build BillingProcessing.sln
           dotnet test src/Tests/UnitTests/ /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=UnitTests/TestResults/ --logger trx
           sonar/scanner/dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
