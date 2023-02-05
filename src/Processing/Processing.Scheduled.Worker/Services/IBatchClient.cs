@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Processing.Scheduled.Worker
-{
+using System.Threading.Tasks;
+using Processing.Scheduled.Worker.Models;
 
-    public class ScheduledProcessorSettings
+namespace Processing.Scheduled.Worker.Services
+{
+    public interface IBatchClient
     {
-        public virtual int MillisecondsScheduledTime { get; set; }
-        public virtual int Retries { get; set; }
+        Task<PairedBatch> FetchBatchAsync(PairedBatch batch);
     }
 }
