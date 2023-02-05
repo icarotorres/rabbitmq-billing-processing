@@ -1,11 +1,15 @@
-﻿using Customers.Application.Abstractions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Text.Json;
+using System.Threading.Tasks;
+using Customers.Application.Abstractions;
 using Customers.Domain.Models;
 using Library.Messaging;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Customers.Application.Workers
 {
@@ -14,7 +18,7 @@ namespace Customers.Application.Workers
         public const string MessageReceived = "Customers message received";
         private readonly ICustomerRepositoryFactory _repositoryFactory;
 
-        public ScheduledCustomerAcceptProcessWorker(IConnectionFactory factory, ICustomerRepositoryFactory repositoryFactory, ILogger logger) : base(nameof(Customer), factory, logger)
+        public ScheduledCustomerAcceptProcessWorker(IConnectionFactory factory, ICustomerRepositoryFactory repositoryFactory, ILogger<ScheduledCustomerAcceptProcessWorker> logger) : base(nameof(Customer), factory, logger)
         {
             _repositoryFactory = repositoryFactory;
         }

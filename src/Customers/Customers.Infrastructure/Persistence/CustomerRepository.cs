@@ -1,10 +1,14 @@
-﻿using Customers.Application.Abstractions;
-using Customers.Domain.Models;
-using Library.Results;
-using Microsoft.EntityFrameworkCore;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Customers.Application.Abstractions;
+using Customers.Domain.Models;
+using Library.Results;
+using Microsoft.EntityFrameworkCore;
 
 namespace Customers.Infrastructure.Persistence
 {
@@ -39,7 +43,11 @@ namespace Customers.Infrastructure.Persistence
 
         public async Task InsertAsync(Customer entity, CancellationToken token)
         {
-            if (entity is INull) return;
+            if (entity is INull)
+            {
+                return;
+            }
+
             await _context.Customers.AddAsync(entity, token);
         }
     }

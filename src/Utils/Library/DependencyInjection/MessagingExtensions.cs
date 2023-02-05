@@ -1,34 +1,41 @@
-﻿using Library.Messaging;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using Library.Configurations;
+using Library.Messaging;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using System;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class MessagingExtensions
     {
-        public static IServiceCollection BootstrapMessagingServices(this IServiceCollection services, RabbitMQSettings settings)
+        public static IServiceCollection BootstrapMessagingServices(this IServiceCollection services, IConfiguration configuration)
         {
+            var rabbitMQ = configuration.GetSection("RabbitMQ").Get<RabbitMQSettings>();
             var factory = new ConnectionFactory
             {
-                Uri = new Uri(settings.AmqpUrl),
-                DispatchConsumersAsync = settings.DispatchConsumersAsync,
-                AutomaticRecoveryEnabled = settings.AutomaticRecoveryEnabled
+                Uri = new Uri(rabbitMQ.AmqpUrl),
+                DispatchConsumersAsync = rabbitMQ.DispatchConsumersAsync,
+                AutomaticRecoveryEnabled = rabbitMQ.AutomaticRecoveryEnabled
             };
             services
-                .AddSingleton(settings)
+                .AddSingleton(rabbitMQ)
                 .AddSingleton<IConnectionFactory, ConnectionFactory>(_ => factory);
 
-            if (settings.PublishExchanges != null)
+            if (rabbitMQ.PublishExchanges != null)
             {
                 services.AddSingleton<IMessagePublisher, PublisherRabbitMQ>(x =>
                 {
                     var connection = factory.CreateConnection();
                     var logger = x.GetRequiredService<ILogger<PublisherRabbitMQ>>();
-                    return new PublisherRabbitMQ(connection, settings, logger);
+                    return new PublisherRabbitMQ(connection, rabbitMQ, logger);
                 });
             }
-            if (settings.ConsumeExchanges != null)
+            if (rabbitMQ.ConsumeExchanges != null)
             {
                 services.AddSingleton(_ => factory.CreateConnection())
                        .AddSingleton(typeof(IMessageConsumer<>), typeof(ConsumerRabbitMQ<>));

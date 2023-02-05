@@ -1,4 +1,10 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.IO.Compression;
 using Customers.Infrastructure.Persistence;
+using Library.Configurations;
 using Library.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,7 +14,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.IO.Compression;
 
 namespace Customers.Api
 {
@@ -26,15 +31,14 @@ namespace Customers.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var rabbitMQ = Configuration.GetSection("RabbitMQ").Get<RabbitMQSettings>();
             services.AddHttpContextAccessor()
                 .BootstrapDomainServices()
                 .BootstrapValidators()
                 .BootstrapPersistenceServices(WebHostEnvironment, Configuration)
-                .BootstrapCache(Configuration.GetSection("Redis").Get<RedisSettings>())
-                .BootstrapSwaggerConfig(Configuration.GetSection("Swagger").Get<SwaggerSettings>())
-                .BootstrapWorkerServices(rabbitMQ)
-                .BootstrapMessagingServices(rabbitMQ)
+                .BootstrapCache(Configuration)
+                .BootstrapSwaggerConfig(Configuration)
+                .BootstrapWorkerServices(Configuration)
+                .BootstrapMessagingServices(Configuration)
                 .BootstrapPipelinesServices()
                 .Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal)
                 .AddResponseCompression(options => options.Providers.Add<GzipCompressionProvider>())
@@ -51,7 +55,10 @@ namespace Customers.Api
                 context.Database.Migrate();
                 app.UseDeveloperExceptionPage();
             }
-            else app.UseHsts();
+            else
+            {
+                app.UseHsts();
+            }
 
             app.UseMiddleware(typeof(ExceptionMiddleware));
 

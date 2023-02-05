@@ -1,5 +1,9 @@
-﻿using Library.Optimizations;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
+using Library.Optimizations;
 using ValueOf;
 
 namespace Library.ValueObjects
@@ -23,12 +27,12 @@ namespace Library.ValueObjects
             return value.Length == 10 &&
                 value.Slice(6, 4).TryParseUshort(out year) &&
                 value.Slice(3, 2).TryParseByte(out month) &&
-                value.Slice(0, 2).TryParseByte(out day);
+                value[..2].TryParseByte(out day);
         }
 
         public static bool ValidateFutureDate(ReadOnlySpan<char> duedate)
         {
-            return TryParse(duedate, out byte day, out byte month, out ushort year) &&
+            return TryParse(duedate, out var day, out var month, out var year) &&
             (
                 // future year
                 (year > DateTime.Today.Year) ||
@@ -43,9 +47,9 @@ namespace Library.ValueObjects
         {
             month = 0;
             year = 0;
-            if (monthYear.Length != 7) return false;
-            if (!monthYear.Slice(0, 2).TryParseByte(out month) || month < 1 || month > 12) return false;
-            return monthYear.Slice(3, 4).TryParseUshort(out year) && year >= 2000;
+            return monthYear.Length == 7
+&& monthYear[..2].TryParseByte(out month) && month >= 1 && month <= 12
+&& monthYear.Slice(3, 4).TryParseUshort(out year) && year >= 2000;
         }
     }
 }

@@ -1,3 +1,9 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.IO.Compression;
+using Library.Configurations;
 using Library.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,9 +12,8 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.IO.Compression;
 
-namespace Issuance.Api
+namespace Billings.Api
 {
 
     public class Startup
@@ -24,15 +29,14 @@ namespace Issuance.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var rabbitMQ = Configuration.GetSection("RabbitMQ").Get<RabbitMQSettings>();
             services.AddHttpContextAccessor()
                 .BootstrapDomainServices()
                 .BootstrapValidators()
-                .BootstrapPersistenceServices(Configuration.GetSection("MongoDB").Get<MongoDBSettings>())
-                .BootstrapCache(Configuration.GetSection("Redis").Get<RedisSettings>())
-                .BootstrapSwaggerConfig(Configuration.GetSection("Swagger").Get<SwaggerSettings>())
-                .BootstrapWorkerServices(rabbitMQ)
-                .BootstrapMessagingServices(rabbitMQ)
+                .BootstrapPersistenceServices(Configuration)
+                .BootstrapCache(Configuration)
+                .BootstrapSwaggerConfig(Configuration)
+                .BootstrapWorkerServices(Configuration)
+                .BootstrapMessagingServices(Configuration)
                 .BootstrapPipelinesServices()
                 .Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal)
                 .AddResponseCompression(options => options.Providers.Add<GzipCompressionProvider>())
@@ -43,11 +47,7 @@ namespace Issuance.Api
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SwaggerSettings swagger)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else app.UseHsts();
+            app = env.IsDevelopment() ? app.UseDeveloperExceptionPage() : app.UseHsts();
 
             app.UseMiddleware(typeof(ExceptionMiddleware));
 

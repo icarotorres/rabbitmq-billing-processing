@@ -1,10 +1,14 @@
-﻿using Customers.Application.Abstractions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using Customers.Application.Abstractions;
 using Customers.Application.Requests;
 using FluentValidation;
 using Library.Optimizations;
 using Library.ValueObjects;
 using Microsoft.AspNetCore.Http;
-using System;
 
 namespace Customers.Application.Validators
 {

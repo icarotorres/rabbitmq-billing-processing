@@ -1,12 +1,16 @@
-﻿using Customers.Application.Abstractions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Customers.Application.Abstractions;
 using Customers.Application.Requests;
 using Customers.Application.Responses;
 using Library.Optimizations;
 using Library.Results;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Customers.Application.Usecases
 {

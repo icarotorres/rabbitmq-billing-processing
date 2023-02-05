@@ -1,14 +1,18 @@
-﻿using Billings.Application.Abstractions;
-using Billings.Domain.Models;
-using Library.Messaging;
-using Microsoft.Extensions.Logging;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Billings.Application.Abstractions;
+using Billings.Domain.Models;
+using Library.Messaging;
+using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Billings.Application.Workers
 {
@@ -16,7 +20,7 @@ namespace Billings.Application.Workers
     {
         private readonly IBillingRepository _repository;
 
-        public ScheduledBillingsToProcessWorker(IConnectionFactory factory, IBillingRepository repository, ILogger logger) : base(nameof(Billing), factory, logger)
+        public ScheduledBillingsToProcessWorker(IConnectionFactory factory, IBillingRepository repository, ILogger<ScheduledBillingsToProcessWorker> logger) : base(nameof(Billing), factory, logger)
         {
             _repository = repository;
         }
@@ -41,7 +45,11 @@ namespace Billings.Application.Workers
             var enumerator = processedBatch.GetEnumerator();
             while (enumerator.Current is Billing billing)
             {
-                if (billing != processedBatch[0]) idsMessageBuilder.Append(",");
+                if (billing != processedBatch[0])
+                {
+                    idsMessageBuilder.Append(",");
+                }
+
                 idsMessageBuilder.Append(enumerator.Current.Id);
                 enumerator.MoveNext();
             }

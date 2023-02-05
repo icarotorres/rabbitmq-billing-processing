@@ -1,25 +1,29 @@
-﻿using Library.Results;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Library.Results;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Library.Messaging
 {
     public abstract class RpcServer<T> : BackgroundService, IRpcServer<T>
     {
         public EventHandler<BasicDeliverEventArgs> OnMessageReceived => OnMessageReceivedEventHandler;
-        protected readonly EventingBasicConsumer _consumer;
-        protected readonly ILogger _logger;
+        protected readonly EventingBasicConsumer Consumer;
+        protected readonly ILogger<RpcServer<T>> Logger;
 
-        protected RpcServer(string queueName, IConnectionFactory connectionFactory, ILogger logger)
+        protected RpcServer(string queueName, IConnectionFactory connectionFactory, ILogger<RpcServer<T>> logger)
         {
-            _logger = logger;
-            _consumer = BuildConsumer(queueName, connectionFactory);
+            Logger = logger;
+            Consumer = BuildConsumer(queueName, connectionFactory);
         }
 
         public virtual EventingBasicConsumer BuildConsumer(string queueName, IConnectionFactory connectionFactory)
@@ -36,13 +40,13 @@ namespace Library.Messaging
 
             var consumer = new EventingBasicConsumer(channel);
             channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
-            _logger.LogInformation("Awaiting RPC requests for queue {Queue}", queueName);
+            Logger.LogInformation("Awaiting RPC requests for queue {Queue}", queueName);
             return consumer;
         }
 
         public virtual IBasicProperties CreateBasicProperties(BasicDeliverEventArgs ea)
         {
-            var replyProperties = _consumer.Model.CreateBasicProperties();
+            var replyProperties = Consumer.Model.CreateBasicProperties();
             replyProperties.CorrelationId = ea.BasicProperties.CorrelationId;
             return replyProperties;
         }
@@ -53,15 +57,15 @@ namespace Library.Messaging
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _consumer.Received += OnMessageReceived;
+            Consumer.Received += OnMessageReceived;
             return Task.CompletedTask;
         }
 
         protected async void OnMessageReceivedEventHandler(object model, BasicDeliverEventArgs ea)
         {
             OnMessageReceivedStarts(ea);
-            string responseMessage = string.Empty;
-            IBasicProperties replyProperties = CreateBasicProperties(ea);
+            var responseMessage = string.Empty;
+            var replyProperties = CreateBasicProperties(ea);
             try
             {
                 var (receivedValue, receivedMessage) = await HandleReceivedMessage(ea);
@@ -69,39 +73,45 @@ namespace Library.Messaging
                 responseMessage = await WriteResponseMessage(receivedValue);
                 OnResponseWritten(ea, responseMessage);
             }
-            catch (Exception ex) { OnMessageReceivedException(ea, ex); }
-            finally { OnMessageReceivedEnds(ea, _consumer.Model, responseMessage, ea.BasicProperties, replyProperties); }
+            catch (Exception ex)
+            {
+                OnMessageReceivedException(ea, ex);
+            }
+            finally
+            {
+                OnMessageReceivedEnds(ea, Consumer.Model, responseMessage, ea.BasicProperties, replyProperties);
+            }
         }
 
         protected virtual void OnMessageReceivedStarts(BasicDeliverEventArgs ea)
         {
-            _logger.LogInformation("Received on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}.",
+            Logger.LogInformation("Received on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}.",
                 ea.BasicProperties.CorrelationId, ea.RoutingKey, ea.DeliveryTag);
         }
 
         protected virtual void OnMessageReaded(BasicDeliverEventArgs ea, string readMessage)
         {
-            _logger.LogInformation("Readed on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}, Message: {Message}.",
+            Logger.LogInformation("Readed on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}, Message: {Message}.",
                 ea.BasicProperties.CorrelationId, ea.RoutingKey, ea.DeliveryTag, readMessage);
         }
 
         protected virtual void OnResponseWritten(BasicDeliverEventArgs ea, string responseMessage)
         {
-            _logger.LogInformation("Readed on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}, ReplyMessage: {ReplyMessage}.",
+            Logger.LogInformation("Readed on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}, ReplyMessage: {ReplyMessage}.",
                 ea.BasicProperties.CorrelationId, ea.RoutingKey, ea.DeliveryTag, responseMessage);
         }
 
         protected virtual void OnMessageReceivedException(BasicDeliverEventArgs ea, Exception ex)
         {
             var errors = string.Join(Environment.NewLine, ex.ExtractMessages());
-            _logger.LogInformation("Readed on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}, Errors: {Errors}.",
+            Logger.LogInformation("Readed on CorrelationId: {CorrelationId}, RoutingKey: {RoutingKey}, DeliveryTag: {DeliveryTag}, Errors: {Errors}.",
                 ea.BasicProperties.CorrelationId, ea.RoutingKey, ea.DeliveryTag, errors);
         }
 
         protected virtual void OnMessageReceivedEnds(BasicDeliverEventArgs ea, IModel channel, string response, IBasicProperties receivedProperties, IBasicProperties replyProperties)
         {
             var responseBytes = Encoding.UTF8.GetBytes(response);
-            channel.BasicPublish(exchange: "", routingKey: receivedProperties.ReplyTo, basicProperties: replyProperties, body: responseBytes);
+            channel.BasicPublish(exchange: string.Empty, routingKey: receivedProperties.ReplyTo, basicProperties: replyProperties, body: responseBytes);
             channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
         }
     }

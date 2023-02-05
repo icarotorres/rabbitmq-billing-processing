@@ -1,13 +1,17 @@
-﻿using Customers.Domain.Models;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using Customers.Domain.Models;
 using Customers.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using MockQueryable.Moq;
 using Moq;
-using System;
-using System.Linq;
-using System.Linq.Expressions;
 
 namespace UnitTests.Customers.Helpers
 {

@@ -1,4 +1,8 @@
-﻿using FluentValidation;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using FluentValidation;
 using FluentValidation.Results;
 using Moq;
 
@@ -35,7 +39,7 @@ namespace Library.TestHelpers
 
         public ValidatorMockBuilder<T> ValidateFalse()
         {
-            var validation = new ValidationResult(new[] { new ValidationFailure("", "") });
+            var validation = new ValidationResult(new[] { new ValidationFailure(string.Empty, string.Empty) });
             _mock.Setup(x => x.Validate(It.IsAny<T>())).Returns(validation);
             _mock.Setup(x => x.Validate(It.IsAny<ValidationContext<T>>())).Returns(validation);
             _mock.Setup(x => x.ValidateAsync(It.IsAny<T>(), default)).ReturnsAsync(validation);

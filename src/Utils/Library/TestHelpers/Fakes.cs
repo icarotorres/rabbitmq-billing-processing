@@ -1,9 +1,13 @@
-﻿using Bogus;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
+using System.Text;
+using Bogus;
 using Library.ValueObjects;
 using Newtonsoft.Json;
 using RabbitMQ.Client.Events;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Library.TestHelpers
 {
@@ -31,7 +35,7 @@ namespace Library.TestHelpers
         public static class Names
         {
             public static readonly string Valid = new Faker().Name.FullName();
-            public static readonly string Empty = "";
+            public static readonly string Empty = string.Empty;
         }
 
         public static class DeliverEventArgs

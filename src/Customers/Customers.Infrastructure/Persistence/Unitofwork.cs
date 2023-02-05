@@ -1,11 +1,15 @@
-﻿using Customers.Application.Abstractions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Customers.Application.Abstractions;
 using Library.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Customers.Infrastructure.Persistence
 {
@@ -35,7 +39,8 @@ namespace Customers.Infrastructure.Persistence
             try
             {
                 var changes = await _context.SaveChangesAsync(cancellationToken);
-                _transaction?.CommitAsync(cancellationToken);
+                if (_transaction != null)
+                    await _transaction?.CommitAsync(cancellationToken);
                 _transactionOpen = false;
                 return new SuccessResult(changes);
             }
@@ -55,7 +60,10 @@ namespace Customers.Infrastructure.Persistence
 
         private async Task RollbackAsync(CancellationToken cancellationToken = default)
         {
-            if (!_transactionOpen) return;
+            if (!_transactionOpen)
+            {
+                return;
+            }
 
             await _transaction?.RollbackAsync(cancellationToken);
             _transactionOpen = false;
@@ -70,7 +78,10 @@ namespace Customers.Infrastructure.Persistence
 
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
 
             if (disposing)
             {

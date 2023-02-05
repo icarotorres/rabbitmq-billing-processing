@@ -1,7 +1,11 @@
-﻿using Customers.Application.Abstractions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Threading;
+using Customers.Application.Abstractions;
 using Library.Results;
 using Moq;
-using System.Threading;
 
 namespace UnitTests.Customers.Helpers
 {

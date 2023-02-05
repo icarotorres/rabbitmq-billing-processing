@@ -1,4 +1,8 @@
-﻿using Bogus;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Bogus;
 using FluentAssertions;
 using Library.TestHelpers;
 using Processing.Scheduled.Worker.Models;
@@ -31,7 +35,7 @@ namespace UnitTests.Scheduled.Worker.Services
                 .And.BeOfType<Billing>()
                 .And.BeSameAs(billing);
             result.Amount.Should().Be(expectedAmount);
-            result.Amount.ToString("0000").Should().Be(string.Join("", digits));
+            result.Amount.ToString("0000").Should().Be(string.Join(string.Empty, digits));
             result.ProcessedAt.Should().NotBeNull();
             processedAtValueBeforeProcess.Should().BeNull();
         }

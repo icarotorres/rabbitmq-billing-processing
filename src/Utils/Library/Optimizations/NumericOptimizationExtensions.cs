@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 
 namespace Library.Optimizations
 {
@@ -37,7 +41,7 @@ namespace Library.Optimizations
 
         public static bool TryParseUlong(this ReadOnlySpan<char> readOnlySpan, out ulong value)
         {
-            var result = readOnlySpan.TryParse(64, out long parseValue);
+            var result = readOnlySpan.TryParse(64, out var parseValue);
             value = (ulong)parseValue;
             return result;
         }
@@ -49,7 +53,7 @@ namespace Library.Optimizations
 
         public static bool TryParseUshort(this ReadOnlySpan<char> readOnlySpan, out ushort value)
         {
-            var result = readOnlySpan.TryParse(16, out long parseValue);
+            var result = readOnlySpan.TryParse(16, out var parseValue);
             value = (ushort)parseValue;
             return result;
         }
@@ -61,7 +65,7 @@ namespace Library.Optimizations
 
         public static bool TryParseByte(this ReadOnlySpan<char> readOnlySpan, out byte value)
         {
-            var result = readOnlySpan.TryParse(2, out long parseValue);
+            var result = readOnlySpan.TryParse(2, out var parseValue);
             value = (byte)parseValue;
             return result;
         }

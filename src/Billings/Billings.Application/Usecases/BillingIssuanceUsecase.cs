@@ -1,12 +1,16 @@
-﻿using Billings.Application.Abstractions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Threading;
+using System.Threading.Tasks;
+using Billings.Application.Abstractions;
 using Billings.Application.Models;
 using Billings.Domain.Services;
 using Library.Messaging;
 using Library.Results;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Billings.Application.Usecases
 {

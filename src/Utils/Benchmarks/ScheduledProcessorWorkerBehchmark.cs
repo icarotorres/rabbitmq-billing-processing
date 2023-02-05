@@ -1,9 +1,14 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
+using System.Linq;
 using BenchmarkDotNet.Attributes;
+using Processing.Scheduled.Worker;
 using Processing.Scheduled.Worker.Models;
 using Processing.Scheduled.Worker.Services;
 using Processing.Scheduled.Worker.Workers;
-using System.Collections.Generic;
-using System.Linq;
 using UnitTests.Scheduled.Worker.Helpers;
 
 namespace Benchmarks
@@ -13,8 +18,8 @@ namespace Benchmarks
     [RankColumn]
     public class ScheduledProcessorWorkerBehchmark
     {
-        [Params(25)] public int CustomersCount;
-        [Params(25)] public int BillingsPerCustomerCount;
+        [Params(1000)] public int _customersCount;
+        [Params(100)] public int _billingsPerCustomerCount;
         private ScheduledProcessorWorker _worker;
         private List<ICpfCarrier> _customers;
         private ProcessBatch _batch;
@@ -22,25 +27,23 @@ namespace Benchmarks
         [GlobalSetup]
         public void GlobalSetup()
         {
-            _worker = new ScheduledProcessorWorker(
-              default, default, new MathOnlyAmountProcessor(), new CpfCarrierComparer(), default, default);
+            var processor = new MathOnlyAmountProcessor();
+            var comparer = new CpfCarrierComparer();
+            var settings = new ScheduledProcessorSettings();
+            _worker = new ScheduledProcessorWorker(default, default, processor, comparer, settings, default);
         }
 
         [IterationSetup]
         public void IterationSetup()
         {
-            _customers = new List<ICpfCarrier>(InternalFakes.Customers.Valid().Generate(CustomersCount));
+            _customers = new List<ICpfCarrier>(InternalFakes.Customers.Valid().Generate(_customersCount));
             _batch = new ProcessBatch
             {
                 Customers = _customers,
-                Billings = _customers
-                .SelectMany(x =>
-                  InternalFakes.Billings
-                    .Valid(x.Cpf)
-                    .Generate(BillingsPerCustomerCount))
-                .ToList()
+                Billings = _customers.SelectMany(x => InternalFakes.Billings.Valid(x.Cpf).Generate(_billingsPerCustomerCount)).ToList()
             };
         }
+
         [IterationCleanup]
         public void IterationCleanup()
         {
@@ -48,28 +51,12 @@ namespace Benchmarks
             _batch = null;
         }
 
-        [Benchmark]
-        public ProcessBatch LinsIndexes()
-        {
-            return _worker.ProcessBatch(_batch);
-        }
+        [Benchmark] public ProcessBatch LinsIndexes() => _worker.ProcessBatch(_batch);
 
-        [Benchmark]
-        public ProcessBatch Join()
-        {
-            return _worker.ProcessBatchJoin(_batch);
-        }
+        //[Benchmark] public ProcessBatch Join() => _worker.ProcessBatchJoin(_batch);
 
-        [Benchmark]
-        public ProcessBatch GroupJoin()
-        {
-            return _worker.ProcessBatchGroupJoin(_batch);
-        }
+        //[Benchmark] public ProcessBatch GroupJoin() => _worker.ProcessBatchGroupJoin(_batch);
 
-        [Benchmark]
-        public ProcessBatch JoinGroupSelectMany()
-        {
-            return _worker.ProcessBatchJoinGroupSelectMany(_batch);
-        }
+        //[Benchmark] public ProcessBatch JoinGroupSelectMany() => _worker.ProcessBatchJoinGroupSelectMany(_batch);
     }
 }

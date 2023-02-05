@@ -1,11 +1,15 @@
-﻿using Billings.Application.Abstractions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Billings.Application.Abstractions;
 using Billings.Domain.Models;
 using Billings.Infrastructure.Persistence.Services;
 using Library.Results;
 using MongoDB.Driver;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Billings.Infrastructure.Persistence
 {
@@ -20,7 +24,11 @@ namespace Billings.Infrastructure.Persistence
 
         public async Task InsertAsync(Billing entity, CancellationToken token)
         {
-            if (entity is INull) return;
+            if (entity is INull)
+            {
+                return;
+            }
+
             await _context.Billings.InsertOneAsync(entity, cancellationToken: token);
         }
 

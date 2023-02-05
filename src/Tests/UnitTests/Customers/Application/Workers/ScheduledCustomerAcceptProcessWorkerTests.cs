@@ -1,4 +1,9 @@
-﻿using Customers.Application.Abstractions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Threading.Tasks;
+using Customers.Application.Abstractions;
 using Customers.Application.Workers;
 using Customers.Domain.Models;
 using FluentAssertions;
@@ -7,7 +12,6 @@ using Moq;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Threading.Tasks;
 using UnitTests.Customers.Helpers;
 using Xunit;
 using static Library.TestHelpers.Fakes;
@@ -25,7 +29,7 @@ namespace UnitTests.Customers.Application.Workers
             MockBuildConsumerDependencies(out var channelMock, out var connectionFactoryMock);
 
             var repositoryFactoryMock = new Mock<ICustomerRepositoryFactory>();
-            var logger = new Mock<ILogger>();
+            var logger = new Mock<ILogger<ScheduledCustomerAcceptProcessWorker>>();
 
             var sut = new ScheduledCustomerAcceptProcessWorker(
                 connectionFactoryMock.Object, repositoryFactoryMock.Object, logger.Object);
@@ -51,9 +55,8 @@ namespace UnitTests.Customers.Application.Workers
             var repository = CustomerRepositoryMockBuilder.Create().Build();
             var repositoryFactoryMock = new Mock<ICustomerRepositoryFactory>();
             repositoryFactoryMock.Setup(x => x.CreateRepository()).Returns(repository);
-            var logger = new Mock<ILogger>();
-            var sut = new ScheduledCustomerAcceptProcessWorker(
-                connectionFactoryMock.Object, repositoryFactoryMock.Object, logger.Object);
+            var logger = new Mock<ILogger<ScheduledCustomerAcceptProcessWorker>>();
+            var sut = new ScheduledCustomerAcceptProcessWorker(connectionFactoryMock.Object, repositoryFactoryMock.Object, logger.Object);
 
             // act
             var (receivedValue, receivedMessage) = await sut.HandleReceivedMessage(deliverEventArgs);
@@ -62,7 +65,6 @@ namespace UnitTests.Customers.Application.Workers
             receivedValue.Should().BeNull();
             receivedMessage.Should().Be(ScheduledCustomerAcceptProcessWorker.MessageReceived);
         }
-
 
         [Fact]
         public async Task WriteResponseMessage_Should_GenerateDeserializableMathingCustomersAsync()
@@ -74,10 +76,8 @@ namespace UnitTests.Customers.Application.Workers
                 .GetAll(expectedCustomers).Build();
             var repositoryFactoryMock = new Mock<ICustomerRepositoryFactory>();
             repositoryFactoryMock.Setup(x => x.CreateRepository()).Returns(repository);
-
-            var logger = new Mock<ILogger>();
-            var sut = new ScheduledCustomerAcceptProcessWorker(
-                connectionFactoryMock.Object, repositoryFactoryMock.Object, logger.Object);
+            var logger = new Mock<ILogger<ScheduledCustomerAcceptProcessWorker>>();
+            var sut = new ScheduledCustomerAcceptProcessWorker(connectionFactoryMock.Object, repositoryFactoryMock.Object, logger.Object);
 
             // act
             var result = await sut.WriteResponseMessage(default);

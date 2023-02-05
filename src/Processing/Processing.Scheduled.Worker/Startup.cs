@@ -1,3 +1,10 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using Library.Configurations;
 using Library.Messaging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,8 +14,6 @@ using Processing.Scheduled.Worker.Models;
 using Processing.Scheduled.Worker.Services;
 using Processing.Scheduled.Worker.Workers;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
 
 namespace Processing.Scheduled.Worker
 {

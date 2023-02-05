@@ -1,11 +1,15 @@
-﻿using Billings.Application.Models;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Billings.Application.Models;
 using Library.Caching;
 using Library.Results;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Billings.Api.Controllers
 {

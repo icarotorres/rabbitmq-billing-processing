@@ -1,6 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using RabbitMQ.Client;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 
 namespace Library.Messaging
 {
@@ -32,13 +36,13 @@ namespace Library.Messaging
         {
             channel.BasicAcks += (sender, ea) =>
             {
-                outstandingConfirms.TryGetValue(ea.DeliveryTag, out string body);
+                outstandingConfirms.TryGetValue(ea.DeliveryTag, out var body);
                 logger.LogInformation($"Message ack-ed. Publisher: {Publisher}, RoutingKey: {routingKey}, DeliveryTag: {ea.DeliveryTag}, Multiple: {ea.Multiple}, Body: {body}");
                 CleanOutstandingConfirms(outstandingConfirms, ea.DeliveryTag, ea.Multiple);
             };
             channel.BasicNacks += (sender, ea) =>
             {
-                outstandingConfirms.TryGetValue(ea.DeliveryTag, out string body);
+                outstandingConfirms.TryGetValue(ea.DeliveryTag, out var body);
                 logger.LogWarning($"Message nack-ed. Publisher: {Publisher}, RoutingKey: {routingKey}, DeliveryTag: {ea.DeliveryTag}, multiple: {ea.Multiple}, body: {body}");
                 CleanOutstandingConfirms(outstandingConfirms, ea.DeliveryTag, ea.Multiple);
             };
@@ -53,8 +57,12 @@ namespace Library.Messaging
             }
 
             foreach (var entry in outstandingConfirms)
+            {
                 if (entry.Key <= deliveryTag)
+                {
                     outstandingConfirms.TryRemove(entry.Key, out _);
+                }
+            }
         }
     }
 }

@@ -1,5 +1,9 @@
-﻿using Library.Optimizations;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
+using Library.Optimizations;
 using ValueOf;
 
 namespace Library.ValueObjects
@@ -18,7 +22,10 @@ namespace Library.ValueObjects
         public static Cpf NewCpf()
         {
             Cpf cpf;
-            do { cpf = From(GenerateRandom()); }
+            do
+            {
+                cpf = From(GenerateRandom());
+            }
             while (!cpf.IsValid());
             return cpf;
         }
@@ -33,14 +40,14 @@ namespace Library.ValueObjects
         {
             lock (_syncObj)
             {
-                ulong number = (ulong)_random.Next(MIN_RANDOM_NUMBER_VALUE, MAX_RANDOM_NUMBER_VALUE);
+                var number = (ulong)_random.Next(MIN_RANDOM_NUMBER_VALUE, MAX_RANDOM_NUMBER_VALUE);
                 var seed = number.ToString("000000000");
                 var digit1 = GenerateVerifierDigit1(seed);
                 var digit2 = GenerateVerifierDigit2(seed, digit1);
-                ulong numberToSumDigits = number * 100;
-                ulong digit1AsTens = (ulong)(digit1 * 10);
-                ulong numberAndDigit1 = numberToSumDigits + digit1AsTens;
-                ulong numberFinishedByDigits = numberAndDigit1 + digit2;
+                var numberToSumDigits = number * 100;
+                var digit1AsTens = (ulong)(digit1 * 10);
+                var numberAndDigit1 = numberToSumDigits + digit1AsTens;
+                var numberFinishedByDigits = numberAndDigit1 + digit2;
                 return numberFinishedByDigits;
             }
         }
@@ -53,11 +60,19 @@ namespace Library.ValueObjects
         public static bool Validate(ReadOnlySpan<char> value)
         {
             var str = value.ToString();
-            if (!ValidateFormat(value) || str == ZEROS || str == NINES) return false;
-            var seed = value.Slice(0, 9);
+            if (!ValidateFormat(value) || str == ZEROS || str == NINES)
+            {
+                return false;
+            }
+
+            var seed = value[..9];
             var verifierDigits = value.Slice(9, 2);
             var verifierDigit1 = GenerateVerifierDigit1(seed);
-            if (verifierDigits[0] - '0' != verifierDigit1) return false;
+            if (verifierDigits[0] - '0' != verifierDigit1)
+            {
+                return false;
+            }
+
             var verifierDigit2 = GenerateVerifierDigit2(seed, verifierDigit1);
             return verifierDigits[1] - '0' == verifierDigit2;
         }
@@ -69,8 +84,19 @@ namespace Library.ValueObjects
 
         private static bool ValidateFormat(ReadOnlySpan<char> value)
         {
-            if (value.Length != 11) return false;
-            foreach (char c in value) if (!char.IsNumber(c)) return false;
+            if (value.Length != 11)
+            {
+                return false;
+            }
+
+            foreach (var c in value)
+            {
+                if (!char.IsNumber(c))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -91,15 +117,18 @@ namespace Library.ValueObjects
 
         private static int SumIteratedMultipliers(byte[] multiplier, ReadOnlySpan<char> seed)
         {
-            int sum = 0;
+            var sum = 0;
             for (byte i = 0; i < 9; i++)
+            {
                 sum += (seed[i] - '0') * multiplier[i];
+            }
+
             return sum;
         }
 
         private static byte Mod11(int sum)
         {
-            byte verifierDigit2 = (byte)(sum % 11);
+            var verifierDigit2 = (byte)(sum % 11);
             return (byte)(verifierDigit2 < 2 ? 0 : 11 - verifierDigit2);
         }
     }

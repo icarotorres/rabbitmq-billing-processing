@@ -1,15 +1,19 @@
-﻿using Library.Results;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Threading.Tasks;
+using Library.Configurations;
+using Library.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
-using System.Threading.Tasks;
 
 namespace Library.Caching
 {
-
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class CacheAttribute : ActionFilterAttribute
     {

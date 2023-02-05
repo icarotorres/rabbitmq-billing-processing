@@ -1,4 +1,9 @@
-﻿using Billings.Application.Abstractions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Threading.Tasks;
+using Billings.Application.Abstractions;
 using Billings.Application.Workers;
 using Billings.Domain.Models;
 using FluentAssertions;
@@ -7,7 +12,6 @@ using Moq;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Threading.Tasks;
 using UnitTests.Billings.Helpers;
 using Xunit;
 using static Library.TestHelpers.Fakes;
@@ -21,17 +25,15 @@ namespace UnitTests.Billings.Application.Workers
         public void BuildConsumer_Should_Create_EventingBasicConsumer()
         {
             // arrange
-            const string expectedQueuename = "sample";
-            MockBuildConsumerDependencies(out Mock<IModel> channelMock, out Mock<IConnectionFactory> connectionFactoryMock);
+            const string ExpectedQueuename = "sample";
+            MockBuildConsumerDependencies(out var channelMock, out var connectionFactoryMock);
 
             var repositoryMock = new Mock<IBillingRepository>();
-            var logger = new Mock<ILogger>();
-
-            var sut = new ScheduledBillingsToProcessWorker(
-                connectionFactoryMock.Object, repositoryMock.Object, logger.Object);
+            var logger = new Mock<ILogger<ScheduledBillingsToProcessWorker>>();
+            var sut = new ScheduledBillingsToProcessWorker(connectionFactoryMock.Object, repositoryMock.Object, logger.Object);
 
             // act
-            var consumer = sut.BuildConsumer(expectedQueuename, connectionFactoryMock.Object);
+            var consumer = sut.BuildConsumer(ExpectedQueuename, connectionFactoryMock.Object);
 
             //assert
             consumer.Should().NotBeNull()
@@ -44,14 +46,13 @@ namespace UnitTests.Billings.Application.Workers
         public async Task HandleReceivedMessage_Should_GenerateDeserializableMathingBillingsAsync()
         {
             // arrange
-            MockBuildConsumerDependencies(out _, out Mock<IConnectionFactory> connectionFactoryMock);
+            MockBuildConsumerDependencies(out _, out var connectionFactoryMock);
             var expectedBillings = InternalFakes.Billings.Valid().Generate(2);
             var deliverEventArgs = DeliverEventArgs.WithBody(expectedBillings).Generate();
             var repository = BillingRepositoryMockBuilder.Create()
                 .UpdateProcessedBatch(expectedBillings, Task.CompletedTask).Build();
-            var logger = new Mock<ILogger>();
-            var sut = new ScheduledBillingsToProcessWorker(
-                connectionFactoryMock.Object, repository, logger.Object);
+            var logger = new Mock<ILogger<ScheduledBillingsToProcessWorker>>();
+            var sut = new ScheduledBillingsToProcessWorker(connectionFactoryMock.Object, repository, logger.Object);
 
             // act
             var (receivedValue, receivedMessage) = await sut.HandleReceivedMessage(deliverEventArgs);
@@ -65,14 +66,13 @@ namespace UnitTests.Billings.Application.Workers
         public async Task WriteResponseMessage_Should_GenerateDeserializableMathingBillingsAsync()
         {
             // arrange
-            MockBuildConsumerDependencies(out _, out Mock<IConnectionFactory> connectionFactoryMock);
+            MockBuildConsumerDependencies(out _, out var connectionFactoryMock);
 
             var expectedBillings = InternalFakes.Billings.Valid().Generate(2);
             var repository = BillingRepositoryMockBuilder.Create()
                 .GetPending(expectedBillings).Build();
-            var logger = new Mock<ILogger>();
-            var sut = new ScheduledBillingsToProcessWorker(
-                connectionFactoryMock.Object, repository, logger.Object);
+            var logger = new Mock<ILogger<ScheduledBillingsToProcessWorker>>();
+            var sut = new ScheduledBillingsToProcessWorker(connectionFactoryMock.Object, repository, logger.Object);
 
             // act
             var result = await sut.WriteResponseMessage(default);

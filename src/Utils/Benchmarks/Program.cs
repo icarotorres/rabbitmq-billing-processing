@@ -1,4 +1,8 @@
-﻿using BenchmarkDotNet.Running;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using BenchmarkDotNet.Running;
 
 namespace Benchmarks
 {
@@ -6,7 +10,7 @@ namespace Benchmarks
     {
         public static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<ScheduledProcessorWorkerBehchmark>();
+            BenchmarkRunner.Run<ScheduledProcessorWorkerBehchmark>();
         }
     }
 }
