@@ -43,15 +43,15 @@ namespace Billings.Application.Workers
             var builderLength = Math.Max((processedBatch.Count * 2) + 1, 2);
             var idsMessageBuilder = new StringBuilder("billing ids received to process: [", builderLength);
             var enumerator = processedBatch.GetEnumerator();
-            while (enumerator.Current is Billing billing)
+            while (enumerator.MoveNext())
             {
+                var billing = enumerator.Current;
                 if (billing != processedBatch[0])
                 {
                     idsMessageBuilder.Append(",");
                 }
 
                 idsMessageBuilder.Append(enumerator.Current.Id);
-                enumerator.MoveNext();
             }
 
             idsMessageBuilder.Append("]");
