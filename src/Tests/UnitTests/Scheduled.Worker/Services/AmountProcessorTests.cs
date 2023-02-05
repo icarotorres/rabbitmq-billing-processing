@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Bogus;
 using FluentAssertions;
-using Library.TestHelpers;
 using Processing.Scheduled.Worker.Models;
 using Processing.Scheduled.Worker.Services;
+using UnitTests.Scheduled.Worker.Helpers;
 using Xunit;
 
 namespace UnitTests.Scheduled.Worker.Services
@@ -18,10 +17,9 @@ namespace UnitTests.Scheduled.Worker.Services
         public void MathOnlyAmountProcessor_Calculate()
         {
             // arrange
-            var cpf = Fakes.CPFs.Valid().Generate();
-            var str = cpf.ToString();
-            var customer = new Customer { Cpf = cpf };
-            var billing = new Billing { Cpf = cpf, Amount = new Faker().Random.Decimal(1, 1000) };
+            var customer = InternalFakes.Customers.Valid().Generate();
+            var billing = InternalFakes.Billings.Valid(customer.Cpf).Generate();
+            var str = customer.Cpf.ToString();
             var processedAtValueBeforeProcess = billing.ProcessedAt;
             var digits = new char[4] { str[0], str[1], str[^2], str[^1] };
             var expectedAmount = decimal.Parse(digits);

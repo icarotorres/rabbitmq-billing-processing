@@ -5,10 +5,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
-using Processing.Scheduled.Worker;
 using Processing.Scheduled.Worker.Models;
 using Processing.Scheduled.Worker.Services;
-using Processing.Scheduled.Worker.Workers;
 using UnitTests.Scheduled.Worker.Helpers;
 
 namespace Benchmarks
@@ -18,45 +16,23 @@ namespace Benchmarks
     [RankColumn]
     public class ScheduledProcessorWorkerBehchmark
     {
-        [Params(1000)] public int _customersCount;
-        [Params(100)] public int _billingsPerCustomerCount;
-        private ScheduledProcessorWorker _worker;
-        private List<ICpfCarrier> _customers;
-        private ProcessBatch _batch;
+        [Params(1000, 5000, 10000)] public int _customersCount;
+        [Params(10, 50, 100)] public int _billingsPerCustomerCount;
 
-        [GlobalSetup]
-        public void GlobalSetup()
-        {
-            var processor = new MathOnlyAmountProcessor();
-            var comparer = new CpfCarrierComparer();
-            var settings = new ScheduledProcessorSettings();
-            _worker = new ScheduledProcessorWorker(default, default, processor, comparer, settings, default);
-        }
+        private PairedBatch _batch;
+        private static readonly MathOnlyAmountProcessor s_processor = new MathOnlyAmountProcessor();
+        private static readonly CpfCarrierComparer s_comparer = new CpfCarrierComparer();
 
         [IterationSetup]
         public void IterationSetup()
         {
-            _customers = new List<ICpfCarrier>(InternalFakes.Customers.Valid().Generate(_customersCount));
-            _batch = new ProcessBatch
+            _batch = new PairedBatch
             {
-                Customers = _customers,
-                Billings = _customers.SelectMany(x => InternalFakes.Billings.Valid(x.Cpf).Generate(_billingsPerCustomerCount)).ToList()
+                Customers = new List<ICpfCarrier>(InternalFakes.Customers.Valid().Generate(_customersCount))
             };
+            _batch.Billings = _batch.Customers.SelectMany(x => InternalFakes.Billings.Valid(x.Cpf).Generate(_billingsPerCustomerCount)).ToList();
         }
 
-        [IterationCleanup]
-        public void IterationCleanup()
-        {
-            _customers = null;
-            _batch = null;
-        }
-
-        [Benchmark] public ProcessBatch LinsIndexes() => _worker.ProcessBatch(_batch);
-
-        //[Benchmark] public ProcessBatch Join() => _worker.ProcessBatchJoin(_batch);
-
-        //[Benchmark] public ProcessBatch GroupJoin() => _worker.ProcessBatchGroupJoin(_batch);
-
-        //[Benchmark] public ProcessBatch JoinGroupSelectMany() => _worker.ProcessBatchJoinGroupSelectMany(_batch);
+        [Benchmark] public PairedBatch LinsIndexes() => _batch.BeProcessed(s_processor, s_comparer, null);
     }
 }
