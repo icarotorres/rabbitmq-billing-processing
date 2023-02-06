@@ -1,8 +1,8 @@
 # RabbitMq-Billing-Processing
 
 [![github-actions](https://github.com/IcaroTorres/rabbitmq-billing-processing/actions/workflows/ci-build-test.yaml/badge.svg)](https://github.com/IcaroTorres/rabbitmq-billing-processing/actions/workflows/ci-build-test.yaml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=IcaroTorres_rabbitmq-billing-processing&metric=alert_status)](https://sonarcloud.io/dashboard?id=IcaroTorres_rabbitmq-billing-processing)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=IcaroTorres_rabbitmq-billing-processing&metric=coverage)](https://sonarcloud.io/dashboard?id=IcaroTorres_rabbitmq-billing-processing)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=f500510f-d3cc-4979-8ba0-2e70d2c15da8_icarotorres-rabbitmq-billing-processing&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=f500510f-d3cc-4979-8ba0-2e70d2c15da8_icarotorres-rabbitmq-billing-processing)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=f500510f-d3cc-4979-8ba0-2e70d2c15da8_icarotorres-rabbitmq-billing-processing&metric=coverage)](https://sonarcloud.io/summary/new_code?id=f500510f-d3cc-4979-8ba0-2e70d2c15da8_icarotorres-rabbitmq-billing-processing)
 
 ## Purpose
 
